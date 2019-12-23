@@ -18,9 +18,8 @@ class RenderArea(QtWidgets.QWidget):
         self.setAutoFillBackground(True)
         self.antialiased = True
         self.pos = QtCore.QPointF(200, 200)
-        self.xVel = 0
-        self.yVel = 0
-        self.snake = [Cell(self.pos, 10)]
+        self.vel = QtCore.QPointF(0, 10)
+        self.snake = []
 
     def minimumSizeHint(self):
         return QtCore.QSize(400, 400)
@@ -34,8 +33,7 @@ class RenderArea(QtWidgets.QWidget):
             painter.drawRect(snake.getQRect())
 
     def createNewCell(self):
-        self.pos.setX(self.pos.x() + self.xVel)
-        self.pos.setY(self.pos.y() + self.yVel)
+        self.pos += self.vel
         self.snake.append(Cell(self.pos, 10))
 
     def timeUpdate(self):
@@ -58,17 +56,17 @@ class Window(QtWidgets.QWidget):
 
     def keyPressEvent(self, evt):
         if evt.key() == QtCore.Qt.Key_W:
-            self.renderArea.yVel = -10
-            self.renderArea.xVel = 0
+            self.renderArea.vel.setY(-10)
+            self.renderArea.vel.setX(0) 
         if evt.key() == QtCore.Qt.Key_S:
-            self.renderArea.yVel = 10
-            self.renderArea.xVel = 0
+            self.renderArea.vel.setY(10)
+            self.renderArea.vel.setX(0) 
         if evt.key() == QtCore.Qt.Key_A:
-            self.renderArea.xVel = -10
-            self.renderArea.yVel = 0
+            self.renderArea.vel.setX(-10)
+            self.renderArea.vel.setY(0) 
         if evt.key() == QtCore.Qt.Key_D:
-            self.renderArea.xVel = 10
-            self.renderArea.yVel = 0
+            self.renderArea.vel.setX(10)
+            self.renderArea.vel.setY(0) 
         
         
         
