@@ -34,7 +34,9 @@ class RenderArea(QtWidgets.QWidget):
 
     def createNewCell(self):
         self.pos += self.vel
-        self.snake.append(Cell(self.pos, 10))
+        # Robot: r + 3 
+
+        self.snake.append(Cell(QPointF(self.pos), 10))
 
     def timeUpdate(self):
         self.createNewCell()
@@ -56,6 +58,7 @@ class Window(QtWidgets.QWidget):
 
     def keyPressEvent(self, evt):
         if evt.key() == QtCore.Qt.Key_W:
+            self.renderArea.vel = QPointF(0, -10)
             self.renderArea.vel.setY(-10)
             self.renderArea.vel.setX(0) 
         if evt.key() == QtCore.Qt.Key_S:
