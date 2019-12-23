@@ -9,6 +9,7 @@ class Cell():
         self.size = size
 
     def getQRect(self):
+        print(self.pos)
         return QtCore.QRectF(self.pos.x(), self.pos.y(), self.size, self.size)
 
 class RenderArea(QtWidgets.QWidget):
@@ -29,15 +30,17 @@ class RenderArea(QtWidgets.QWidget):
         
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
-        for snake in self.snake:
-            painter.drawRect(snake.getQRect())
+        for cell in self.snake:
+            rect = cell.getQRect()
+            painter.drawRect(rect)
 
     def createNewCell(self):
         self.pos += self.vel
-        self.snake.append(Cell(self.pos, 10))
+        self.snake.append(Cell(QtCore.QPointF(self.pos), 10))
 
     def timeUpdate(self):
         self.createNewCell()
+        # print(len(self.snake))
         self.update()
 
 
@@ -52,21 +55,17 @@ class Window(QtWidgets.QWidget):
         self.timer = QtCore.QTimer(self)
         self.timer.setSingleShot(False)
         self.timer.timeout.connect(self.renderArea.timeUpdate)
-        self.timer.start(30)
+        self.timer.start(500)
 
     def keyPressEvent(self, evt):
         if evt.key() == QtCore.Qt.Key_W:
-            self.renderArea.vel.setY(-10)
-            self.renderArea.vel.setX(0) 
+            self.renderArea.vel = QtCore.QPointF(0, -10)
         if evt.key() == QtCore.Qt.Key_S:
-            self.renderArea.vel.setY(10)
-            self.renderArea.vel.setX(0) 
+            self.renderArea.vel = QtCore.QPointF(0, 10)
         if evt.key() == QtCore.Qt.Key_A:
-            self.renderArea.vel.setX(-10)
-            self.renderArea.vel.setY(0) 
+            self.renderArea.vel = QtCore.QPointF(-10, 0)
         if evt.key() == QtCore.Qt.Key_D:
-            self.renderArea.vel.setX(10)
-            self.renderArea.vel.setY(0) 
+            self.renderArea.vel = QtCore.QPointF(10, 0)
         
         
         
