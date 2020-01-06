@@ -76,6 +76,7 @@ class Gun:
 
 
 
+
 class Bullet:
     def __init__(self, scene, pos, vel):
         self.pos = pos
