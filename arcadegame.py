@@ -194,10 +194,9 @@ class Window(QWidget):
                 QPointF(random.uniform(-ARENA_SIZE/2+50, ARENA_SIZE/2-50),
                 random.uniform(-ARENA_SIZE/2+50, ARENA_SIZE/2-50)),
                 QPointF(0, 0)))
-        self.goal1= QPolygonF([QPointF(-300, -300), QPointF(-300, -150), QPointF(-150, -300)])
-        self.goalItem1 = QGraphicsPolygonItem(self.goal1) 
-        self.scene.addItem(self.goalItem1)
-        self.goals = [self.goal1]
+        self.goal= QRectF(QPointF(-ARENA_SIZE/2, -ARENA_SIZE/2), QPointF(ARENA_SIZE/2, ARENA_SIZE/2))
+        self.goalItem = QGraphicsEllipseItem(self.goal) 
+        self.scene.addItem(self.goalItem)
 
     def isStill(self):
         totalVel = 0
@@ -242,12 +241,11 @@ class Window(QWidget):
             for j in range(len(self.rocks)):
                 if i != j:
                     self.bounceOffRocks(self.rocks[i], self.rocks[j])
-        # checking if a rock is in goal
+        
+        # checking if a rock is out of goal
         for r in self.rocks:
-            for g in self.goals:
-                if g.containsPoint(r.pos, 1):
-                    self.rocks.remove(r)
-                    r.remove()
+            if length(r.pos) > ARENA_SIZE/2:
+                r.remove()
 
         # for r in self.rocks:
         for r in self.rocks:
