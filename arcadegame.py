@@ -65,13 +65,13 @@ class Gun:
         
     def addToAngle(self, delta):
         self.ang += delta
-        self.item.setRotation(180 * self.ang / (2 * math.pi))
+        self.item.setRotation(180 * self.ang / (math.pi))
 
     def setPos(self, newPos):
         self.pos = newPos
         self.item.setPos(self.pos)
 
-    def deleteGun(self):
+    def remove(self):
         self.scene.removeItem(self.item)
 
 
@@ -105,19 +105,19 @@ class MyView(QGraphicsView):
         self.mySignal.emit(pos.x(), pos.y())
 
 class Rock:
-    def __init__(self, scene, pos, vel):
+    def __init__(self, scene, r, pos, vel):
         self.pos = pos
         self.vel = vel
         self.scene = scene
-        r = 100
-        re = QRectF(QPointF(-r/2, -r/2,), QPointF(r/2, r/2))
+        self.r = r
+        re = QRectF(QPointF(-r, -r,), QPointF(r, r))
         self.item = QGraphicsEllipseItem(re)
         self.item.setPos(self.pos)
         self.scene.addItem(self.item)
         self.gun = None
     
     def tick(self):
-        self.vel = self.vel * .99
+        self.vel = self.vel * 0.99
         self.pos += self.vel
         if self.gun:
             self.gun.setPos(self.pos)
@@ -127,13 +127,14 @@ class Rock:
         self.gun = Gun(self.scene, self.pos)
 
     def removeGun(self):
-        self.gun.deleteGun()
+        if self.gun is not None:
+            self.gun.remove()
         self.gun = None
 
     def fireGun(self):
         if self.gun is not None:
             uv = QPointF(math.cos(self.gun.ang), math.sin(self.gun.ang)) * 5
-            self.vel += uv
+            self.vel = uv
         
     def remove(self):
         self.removeGun()
@@ -168,17 +169,41 @@ class Window(QWidget):
             -ARENA_SIZE/2, -ARENA_SIZE/2,
             ARENA_SIZE, ARENA_SIZE)
         lo.addWidget(self.gview)
+        self.outerSquare = QRectF(QPointF(-ARENA_SIZE/2-15, -ARENA_SIZE/2-15), QPointF( ARENA_SIZE + 50, ARENA_SIZE+50))
+        self.outer = QGraphicsRectItem(self.outerSquare)
+        brushBlack = QBrush(Qt.black)
+        self.outer.setBrush(brushBlack)
+        self.scene.addItem(self.outer)
+        #
+        self.innerSquare = QRectF(QPointF(-ARENA_SIZE/2, -ARENA_SIZE/2), QPointF( ARENA_SIZE/2, ARENA_SIZE/2))
+        self.inner = QGraphicsRectItem(self.innerSquare)
+        brushWhite = QBrush(Qt.white)
+        self.inner.setBrush(brushWhite)
+        self.scene.addItem(self.inner)
+        #
+        self.frame = QRectF(QPointF(-ARENA_SIZE/2, -ARENA_SIZE/2), QPointF(ARENA_SIZE/2, ARENA_SIZE/2)) 
+        self.frameItem = QGraphicsRectItem(self.frame)
+        self.scene.addItem(self.frameItem)
+        self.radius = 50
         # it = QGraphicsRectItem(QPointF(0, 0), QPointF(100, 100))
         # self.scene.addItem(it)
-        self.rock1 = Rock(self.scene, QPointF(0, 0), QPointF(-10, 0))
-        # self.rock2 = Rock(self.scene, QPointF(0, 50), QPointF(-5, 0))
-        # self.rock3 = Rock(self.scene, QPointF(100, 0), QPointF(3, 0))
-        # self.rock4 = Rock(self.scene, QPointF(-200, 30), QPointF(0, 2))
-        self.rocks = [self.rock1]
-        self.goal1= QPolygonF([QPointF(-350, -350), QPointF(-350, -100), QPointF(-100, -350)])
+        self.rock1 = Rock(self.scene, self.radius, QPointF(0, 0), QPointF(-10, 0))
+        self.rock2 = Rock(self.scene, self.radius, QPointF(0, 50), QPointF(-5, 0))
+        self.rock3 = Rock(self.scene, self.radius, QPointF(100, 0), QPointF(3, 0))
+        self.rock4 = Rock(self.scene, self.radius, QPointF(-200, 30), QPointF(0, 2))
+        self.rocks = [self.rock1, self.rock2, self.rock3, self.rock4]
+        self.goal1= QPolygonF([QPointF(-300, -300), QPointF(-300, -150), QPointF(-150, -300)])
         self.goalItem1 = QGraphicsPolygonItem(self.goal1) 
         self.scene.addItem(self.goalItem1)
         self.goals = [self.goal1]
+
+    def isStill(self):
+        totalVel = 0
+        for rock in self.rocks:
+            totalVel += length(rock.vel)
+        if totalVel < 0.5:
+            return True
+        return False
         # self.gun1 = Gun(self.scene, QPointF(0, 280), QPointF(0, 0))
 
 
@@ -194,16 +219,16 @@ class Window(QWidget):
         xVel = rock.vel.x()
         yVel = rock.vel.y()
         a = ARENA_SIZE/2
-        if (x > a and xVel > 0) or (x < -a and xVel < 0):
+        if ((x + self.radius) > a and xVel > 0) or ((x - self.radius) < -a and xVel < 0):
             xVel = -xVel
-        if (y > a and yVel > 0) or (y < -a and yVel < 0):
+        if ((y + self.radius) > a and yVel > 0) or ((y - self.radius) < -a and yVel < 0):
             yVel = - yVel
         rock.vel = QPointF(xVel, yVel)
 
     def fireGun(self):
         a = math.pi * self.gun.ang / 180 
         v = 10 * QPointF(math.cos(a), math.sin(a))
-        r = Rock(self.scene, QPointF(0, 300), v)
+        r = Rock(self.scene, self.radius, QPointF(0, 300), v)
         self.rocks.append(r)
 
     def tick(self):
@@ -219,7 +244,7 @@ class Window(QWidget):
         for r in self.rocks:
             for g in self.goals:
                 if g.containsPoint(r.pos, 1):
-                    self.goals.remove(g)
+                    self.rocks.remove(r)
                     r.remove()
 
         # for r in self.rocks:
@@ -233,12 +258,13 @@ class Window(QWidget):
             if r.gun != None:
                 rock = r
         if rock is not None:
-            if evt.key() == Qt.Key_L:
-                rock.gun.addToAngle(0.1)
-            if evt.key() == Qt.Key_K:
-                rock.gun.addToAngle(-0.1)
-            if evt.key() == Qt.Key_Space:
-                rock.fireGun()
+            if self.isStill():
+                if evt.key() == Qt.Key_L:
+                    rock.gun.addToAngle(0.1)
+                if evt.key() == Qt.Key_K:
+                    rock.gun.addToAngle(-0.1)
+                if evt.key() == Qt.Key_Space:
+                    rock.fireGun()
 
 
     def recieveClick(self, x, y):
