@@ -92,7 +92,6 @@ class Bullet:
         self.item.setPos(self.pos)
 
 
-
 class MyView(QGraphicsView):
 
     mySignal = pyqtSignal(float, float)
@@ -133,7 +132,7 @@ class Rock:
 
     def fireGun(self):
         if self.gun is not None:
-            uv = QPointF(math.cos(self.gun.ang), math.sin(self.gun.ang)) * 5
+            uv = QPointF(math.cos(self.gun.ang), math.sin(self.gun.ang)) * 10
             self.vel = uv
         
     def remove(self):
@@ -187,11 +186,13 @@ class Window(QWidget):
         self.radius = 50
         # it = QGraphicsRectItem(QPointF(0, 0), QPointF(100, 100))
         # self.scene.addItem(it)
-        self.rock1 = Rock(self.scene, self.radius, QPointF(0, 0), QPointF(-10, 0))
-        self.rock2 = Rock(self.scene, self.radius, QPointF(0, 50), QPointF(-5, 0))
-        self.rock3 = Rock(self.scene, self.radius, QPointF(100, 0), QPointF(3, 0))
-        self.rock4 = Rock(self.scene, self.radius, QPointF(-200, 30), QPointF(0, 2))
-        self.rocks = [self.rock1, self.rock2, self.rock3, self.rock4]
+        amount = 4
+        self.rocks = []
+        for i in range(amount):
+            self.rocks.append(Rock(self.scene, self.radius, 
+                QPointF(random.uniform(-ARENA_SIZE/2+50, ARENA_SIZE/2-50),
+                random.uniform(-ARENA_SIZE/2+50, ARENA_SIZE/2-50)),
+                QPointF(0, 0)))
         self.goal1= QPolygonF([QPointF(-300, -300), QPointF(-300, -150), QPointF(-150, -300)])
         self.goalItem1 = QGraphicsPolygonItem(self.goal1) 
         self.scene.addItem(self.goalItem1)
@@ -201,7 +202,7 @@ class Window(QWidget):
         totalVel = 0
         for rock in self.rocks:
             totalVel += length(rock.vel)
-        if totalVel < 0.5:
+        if totalVel < 2.5:
             return True
         return False
         # self.gun1 = Gun(self.scene, QPointF(0, 280), QPointF(0, 0))
@@ -227,7 +228,7 @@ class Window(QWidget):
 
     def fireGun(self):
         a = math.pi * self.gun.ang / 180 
-        v = 10 * QPointF(math.cos(a), math.sin(a))
+        v = 20 * QPointF(math.cos(a), math.sin(a))
         r = Rock(self.scene, self.radius, QPointF(0, 300), v)
         self.rocks.append(r)
 
