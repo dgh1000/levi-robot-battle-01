@@ -201,22 +201,34 @@ class Window(QWidget):
         self.radius = 50
         # it = QGraphicsRectItem(QPointF(0, 0), QPointF(100, 100))
         # self.scene.addItem(it)
-        amount = 4
+        amount = 10
         self.rocks = []
         for i in range(amount):
-            self.rocks.append(Rock(self.scene, self.radius, 
-                QPointF(random.uniform(-ARENA_SIZE/2+50, ARENA_SIZE/2-50),
-                random.uniform(-ARENA_SIZE/2+50, ARENA_SIZE/2-50)),
-                QPointF(0, 0)))
+            pos = self.randomPos()
+            if not self.anyOverlap(pos):
+                continue
+            self.rocks.append(Rock(self.scene, self.radius, pos, QPointF(0, 0)))
         self.goal= QRectF(QPointF(-ARENA_SIZE/2, -ARENA_SIZE/2), QPointF(ARENA_SIZE/2, ARENA_SIZE/2))
         self.goalItem = QGraphicsEllipseItem(self.goal) 
         self.scene.addItem(self.goalItem)
+
+    def anyOverlap(self, pos):
+        for rock in self.rocks:
+            if length(QPointF(rock.pos - pos)) < 2*self.radius:
+                return False
+        return True
+
+    def randomPos(self):
+        def r():
+            a = ARENA_SIZE/2
+            return random.uniform(-a + 50, a - 50)
+        return QPointF(r(), r())
 
     def isStill(self):
         totalVel = 0
         for rock in self.rocks:
             totalVel += length(rock.vel)
-        if totalVel < 2.5:
+        if totalVel < 7.5:
             return True
         return False
         # self.gun1 = Gun(self.scene, QPointF(0, 280), QPointF(0, 0))
@@ -249,12 +261,15 @@ class Window(QWidget):
     def tick(self):
         # bounce off walls  
         for r in self.rocks:
-            self.bounceOffWalls(r)
+            if r.faded == 0:
+                self.bounceOffWalls(r)
         # bounce off other rocks
         for i in range(len(self.rocks)):
             for j in range(len(self.rocks)):
-                if i != j:
-                    self.bounceOffRocks(self.rocks[i], self.rocks[j])
+                r1 = self.rocks[i]
+                r2 = self.rocks[j]
+                if r1.faded == 0 and r2.faded == 0 and i != j:
+                    self.bounceOffRocks(r1, r2)
 
         # for r in self.rocks:
         for r in self.rocks:
