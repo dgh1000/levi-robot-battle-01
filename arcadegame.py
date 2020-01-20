@@ -115,13 +115,27 @@ class Rock:
         self.item.setPos(self.pos)
         self.scene.addItem(self.item)
         self.gun = None
+        # faded goes from 0 to 100
+        self.faded = 0
     
     def tick(self):
         self.vel = self.vel * 0.99
         self.pos += self.vel
         if self.gun:
             self.gun.setPos(self.pos)
-        self.item.setPos(self.pos)        
+        self.item.setPos(self.pos) 
+        self.item.setOpacity(1.0 - self.faded/15)
+
+    def setFade(self):
+        if self.faded == 0:
+            self.removeGun()
+            self.faded = 1
+        else:
+            self.faded += 1
+
+    def isFaded(self):
+        return self.faded >= 15
+        
 
     def attachGun(self):
         self.gun = Gun(self.scene, self.pos)
@@ -241,15 +255,15 @@ class Window(QWidget):
             for j in range(len(self.rocks)):
                 if i != j:
                     self.bounceOffRocks(self.rocks[i], self.rocks[j])
-        
-        # checking if a rock is out of goal
-        for r in self.rocks:
-            if length(r.pos) > ARENA_SIZE/2:
-                r.remove()
 
         # for r in self.rocks:
         for r in self.rocks:
             r.tick()
+
+         # checking if a rock is in goal
+        for r in self.rocks:
+            if length(r.pos) > ARENA_SIZE/2:
+                r.setFade()
         
 
     def keyPressEvent(self, evt):
